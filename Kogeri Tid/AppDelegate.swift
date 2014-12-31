@@ -13,12 +13,53 @@ import CoreData
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
-
+    var secondaryWindow: UIWindow?
+    var nextBatchDate : NextShowDate = NextShowDate(showDate: NSDate())
+    var isBatchTimeSet : Bool = false
+    var secondaryResolution = CGRect(x: 0, y: 0, width: 0, height: 0)
 
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
         // Override point for customization after application launch.
+        
+        //Subscribing to UIScreenDidConnect/DisconnectNotification
+        var screenConnectionStatusChangedNotification = NSNotificationCenter.defaultCenter()
+        screenConnectionStatusChangedNotification.addObserver(self, selector:"screenConnectionChanged", name: UIScreenDidConnectNotification, object: nil)
+        screenConnectionStatusChangedNotification.addObserver(self, selector:"screenConnectionChanged", name: UIScreenDidDisconnectNotification, object: nil)
+        
+        
+        // initial check for secondary screen
+        if (UIScreen.screens().count > 1){
+            self.screenConnectionChanged()
+        }
+        
         return true
     }
+    
+    //Managing connection and disconnaction of secondary screen
+    func screenConnectionChanged() {
+        if (UIScreen.screens().count==1){
+            self.secondaryWindow?.rootViewController = nil
+        }
+        else {
+            var screens : Array = UIScreen.screens()
+            var newScreen = screens.last as UIScreen
+            self.secondaryWindow = setupScreen(newScreen)
+            secondaryWindow?.rootViewController = SecondaryViewController()
+            secondaryWindow?.makeKeyAndVisible()
+        }
+    }
+    
+    // Sets Up new Window for ex. SecondaryScreen
+    func setupScreen(screen : UIScreen) -> UIWindow{
+        var newWindow : UIWindow = UIWindow(frame: screen.bounds)
+        newWindow.screen = screen
+        newWindow.hidden = false //Might not be necesarry
+        return newWindow
+    }
+    
+
+    
+
 
     func applicationWillResignActive(application: UIApplication) {
         // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
