@@ -38,6 +38,7 @@ class ViewController: UIViewController, UIPickerViewDataSource, UIPickerViewDele
         timeFormatter.dateFormat = "HH:mm"
         
         secondaryResolutionLabel.text = "\((UIApplication.sharedApplication().delegate as AppDelegate).secondaryResolution)"
+        secondaryScreenConnectionStatusChanged()
     }
 
     override func didReceiveMemoryWarning() {
