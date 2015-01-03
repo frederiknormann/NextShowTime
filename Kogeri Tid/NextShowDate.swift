@@ -10,22 +10,69 @@ import Foundation
 
 class NextShowDate {
     
-    //date and time of the next show
-    var date : NSDate = NSDate(timeIntervalSince1970: 0)
-    var weekday = 0
-    var weekOfYear = 0
-    var year = 0
     
-    var currentWeekday = 0
-    var currentWeekOfYear = 0
-    var currentYear = 0
+    //CURRENT DATE
+    var currentDate : NSDate {
+        get{ return NSDate() }
+    }
     
-    var timeLeftSec = 0
-    var actualDays = 0
-    var days = 0
-    var hours = 0
-    var minutes = 0
-    var seconds = 0
+    var currentWeekday : Int {
+        get{ return NSCalendar.currentCalendar().components(NSCalendarUnit.WeekdayCalendarUnit, fromDate: currentDate).weekday }
+    }
+    var currentWeekOfYear : Int {
+        get{ return NSCalendar.currentCalendar().components(NSCalendarUnit.WeekOfYearCalendarUnit, fromDate: currentDate).weekOfYear }
+    }
+    var currentYear : Int {
+        get{ return NSCalendar.currentCalendar().components(NSCalendarUnit.YearForWeekOfYearCalendarUnit, fromDate: currentDate).yearForWeekOfYear }
+    }
+    
+    //SHOWDATE
+    var showDate : NSDate = NSDate(timeIntervalSince1970: 0) {
+        didSet{
+            //Cuts off seconds from new date
+            self.showDate = NSDate(timeIntervalSince1970: NSTimeInterval(Int(showDate.timeIntervalSince1970 / 60) * 60))
+        }
+    }
+    
+    var weekday : Int {
+        get{ return NSCalendar.currentCalendar().components(NSCalendarUnit.CalendarUnitWeekday, fromDate: self.showDate).weekday}
+    }
+    var weekOfYear : Int {
+        get{ return NSCalendar.currentCalendar().components(NSCalendarUnit.WeekOfYearCalendarUnit, fromDate: self.showDate).weekOfYear }
+    }
+    var year : Int {
+        get { return NSCalendar.currentCalendar().components(NSCalendarUnit.YearForWeekOfYearCalendarUnit, fromDate: self.showDate).yearForWeekOfYear }
+    }
+    
+    var timeLeftSec : Int {
+        get { return Int(showDate.timeIntervalSinceDate(currentDate)) }
+    }
+    
+    // SPLIT TIME LEFT
+    var actualDays : Int  { get{ return Int(timeLeftSec / (60*60*24)) } }
+    var days : Int { //number of midnights until next show
+        get{
+            if (weekOfYear >= currentWeekOfYear || year > currentYear) { //checks for negative timeleft
+                if (weekOfYear == currentWeekOfYear && weekday > currentWeekday) { //same week
+                    return weekday - currentWeekday
+                }
+                else {
+                    if (self.year == currentYear) { //same year
+                        return currentWeekday + (7 * (weekOfYear-currentWeekOfYear)) - weekday
+                    }
+                    else { //show happens in one of the comming years
+                    //following calculation is highly unprecise!! But it works for the purpose intended to show 1day for tommorrow and more if its futher along // viser ikke 1 dag ved års skifte (overgangen fra uge 52 til 1)
+                    return currentWeekday + (7 * (weekOfYear + (52 * (self.year - currentYear)) - currentWeekOfYear)) - weekday
+                    }
+                }
+            }
+            else {return actualDays} //Show allready happened
+        }
+    }
+    var hours : Int       { get{ return Int(timeLeftSec / (60*60) % 24) } }
+    var minutes : Int     { get{ return Int(timeLeftSec / 60 % 60) } }
+        var seconds : Int { get{ return Int(timeLeftSec % 60) } }
+    
     
     //minimis interval where time left doesn't show
     var minimis = 30 //sec
@@ -34,76 +81,33 @@ class NextShowDate {
     var timeFormatter = NSDateFormatter()
     let timeFormat = "HH:mm"
     
-    var weekdayString = ""  //ex. "Onsdag"
+   // let weekdayNames : [String] = [da:"Søndag" en:"Sunday" de:"Sontag", da:"" en:"" de:""]
+    var weekdayString : String {  //ex. "Onsdag"
+        get{
+            var weekDayString = ""
+            switch (weekday) {
+                case 1: weekDayString = "Søndag"
+                case 2: weekDayString = "Mandag"
+                case 3: weekDayString = "Tirsdag"
+                case 4: weekDayString = "Onsdag"
+                case 5: weekDayString = "Torsdag"
+                case 6: weekDayString = "Fredag"
+                case 7: weekDayString = "Lørdag"
+                default: weekDayString = ""
+            }
+            return weekDayString
+        }
+    }
+        
     var nextShowTimeString = "" //ex. "14:10"
     
     var language = "da"
     
     init(showDate: NSDate) {
-        self.date = showDate
-        cutSeconds()
-        self.weekday = NSCalendar.currentCalendar().components(NSCalendarUnit.CalendarUnitWeekday, fromDate: self.date).weekday
-        self.weekOfYear = NSCalendar.currentCalendar().components(NSCalendarUnit.WeekOfYearCalendarUnit, fromDate: self.date).weekOfYear
-        self.year = NSCalendar.currentCalendar().components(NSCalendarUnit.YearForWeekOfYearCalendarUnit, fromDate: self.date).yearForWeekOfYear
-        self.weekdayString = weekDayString(self.weekday)
+        self.showDate = showDate
+        //self.weekdayString = weekDayString(self.weekday)
         self.timeFormatter.dateFormat = self.timeFormat
-        self.nextShowTimeString = self.timeFormatter.stringFromDate(self.date)
-        
-        updateCurrentDayVariables()
-    }
-    
-    
-    func updateCurrentDayVariables() {
-        let currentDate = NSDate()
-        self.currentWeekday = NSCalendar.currentCalendar().components(NSCalendarUnit.WeekdayCalendarUnit, fromDate: currentDate).weekday
-        self.currentWeekOfYear = NSCalendar.currentCalendar().components(NSCalendarUnit.WeekOfYearCalendarUnit, fromDate: currentDate).weekOfYear
-        self.currentYear = NSCalendar.currentCalendar().components(NSCalendarUnit.YearForWeekOfYearCalendarUnit, fromDate: currentDate).yearForWeekOfYear
-        
-        timeLeftSec = Int(date.timeIntervalSinceDate(currentDate))
-        //println("\(timeLeftSec)tl  \(weekday)w \(currentWeekday)cw \(weekOfYear)wy \(currentWeekOfYear)cwy \(year)y \(currentYear)cy \(weekdayString)")
-        
-        self.actualDays = Int(timeLeftSec / (60*60*24))
-        self.hours = Int(timeLeftSec / (60*60) % 24)
-        self.minutes = Int(timeLeftSec / 60 % 60)
-        self.seconds = Int(timeLeftSec % 60)
-        
-        if (weekOfYear >= currentWeekOfYear || year > currentYear) {
-            if (weekOfYear == currentWeekOfYear && weekday > currentWeekday) {
-                days = weekday - currentWeekday
-            }
-            else {
-                if (self.year == currentYear) {
-                    days = currentWeekday + (7 * (weekOfYear-currentWeekOfYear)) - weekday
-                }
-                else {
-                    //following calculation is highly unprecise!! But it works for the purpose intended to show 1day for tommorrow and more if its futher along
-                    days = currentWeekday + (7 * (weekOfYear + (52 * (self.year - currentYear)) - currentWeekOfYear)) - weekday
-                }
-            }
-        }
-        //println("\(timeLeftSec)tl \(actualDays)ad \(days)d \(hours)t \(minutes)min \(seconds)s")
-        
-    }
-    
-    // cuts off seconds from picked date and time
-    func cutSeconds(){
-        date = NSDate(timeIntervalSince1970: NSTimeInterval(Int(date.timeIntervalSince1970 / 60) * 60))
-    }
-    
-    //skal laves som et array med de 3 sprog
-    func weekDayString(weekday : Int) -> String {
-        var weekDayString = ""
-        switch (weekday) {
-            case 1: weekDayString = "Søndag"
-            case 2: weekDayString = "Mandag"
-            case 3: weekDayString = "Tirsdag"
-            case 4: weekDayString = "Onsdag"
-            case 5: weekDayString = "Torsdag"
-            case 6: weekDayString = "Fredag"
-            case 7: weekDayString = "Lørdag"
-            default: weekDayString = ""
-        }
-        return weekDayString
+        self.nextShowTimeString = self.timeFormatter.stringFromDate(self.showDate)
     }
     
     func nextLanguage() {
@@ -113,7 +117,7 @@ class NextShowDate {
     
     func generateNextShowStringPrimary() -> String {
         
-        self.updateCurrentDayVariables()
+        //self.updateCurrentDayVariables()
         var nextBatchTimeString: String = ""
             //println(days)
             if (self.days > 0) {
@@ -138,11 +142,8 @@ class NextShowDate {
         return nextBatchTimeString
     }
 
-//    skal laves så tekster trækkes fra array med oversættelser, meget kortere...
+//    skal laves så tekster trækkes fra array med oversættelser, meget kortere... eller implementeres med en form for sprog implementering
     func generateNextShowStringSecondary() -> String {
-        
-        self.updateCurrentDayVariables()
-        
         var nextBatchTimeString: String = ""
         
         if (timeLeftSec > self.minimis) {

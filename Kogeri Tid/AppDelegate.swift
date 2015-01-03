@@ -2,7 +2,7 @@
 //  AppDelegate.swift
 //  Kogeri Tid
 //
-//  Created by Jannie Henriksen on 06/12/14.
+//  Created by Frederik Normann on 06/12/14.
 //  Copyright (c) 2014 Normann Development. All rights reserved.
 //
 
@@ -18,7 +18,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var isBatchTimeSet : Bool = false
     var isLanguageEnabled : Bool = false
     var secondaryResolution = CGRect(x: 0, y: 0, width: 0, height: 0)
-    
 
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
         // Override point for customization after application launch.
@@ -27,7 +26,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         var screenConnectionStatusChangedNotification = NSNotificationCenter.defaultCenter()
         screenConnectionStatusChangedNotification.addObserver(self, selector:"screenConnectionChanged", name: UIScreenDidConnectNotification, object: nil)
         screenConnectionStatusChangedNotification.addObserver(self, selector:"screenConnectionChanged", name: UIScreenDidDisconnectNotification, object: nil)
-        
         
         // initial check for secondary screen
         if (UIScreen.screens().count > 1){

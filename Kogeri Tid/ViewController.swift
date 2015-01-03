@@ -96,7 +96,6 @@ class ViewController: UIViewController, UIPickerViewDataSource, UIPickerViewDele
     // IBActions
     
     @IBAction func setTimeButtonPressed(sender: AnyObject) {
-        appDelegate.isLanguageEnabled = languageSwitch.on
         appDelegate.nextBatchDate = NextShowDate(showDate: nextBatchTimeDatePicker.date)
         appDelegate.isBatchTimeSet = true
         //reset minutepicker to 0
@@ -111,7 +110,10 @@ class ViewController: UIViewController, UIPickerViewDataSource, UIPickerViewDele
         nextBatchTimeDatePicker.date = NSDate()
         //reset minutepicker to 0
     }
-
+    
+    @IBAction func languageSwitchChanged(sender: UISwitch) {
+        appDelegate.isLanguageEnabled = languageSwitch.on
+    }
     
     //DELEGATES AND DATASOURCES
     
@@ -124,7 +126,7 @@ class ViewController: UIViewController, UIPickerViewDataSource, UIPickerViewDele
         func pickerView(pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
             return pickerData.count
         }
-        
+    
         //DELEGATES
     
         func pickerView(pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String! {
