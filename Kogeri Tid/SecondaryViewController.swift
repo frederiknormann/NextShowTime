@@ -167,7 +167,7 @@ class SecondaryViewController : UIViewController {
         self.topLabelLeft.text = "Instagram: @bolchemanden @bolchefruen @bolchekogeren"
         self.topLabelLeft.font = UIFont(name: bolcherietFontString, size: 22)
         self.topLabelLeft.textColor = textColor
-        self.topLabelLeft.backgroundColor = backgroundColor
+        self.topLabelLeft.backgroundColor = backgroundColor 
         self.topLabelLeft.alpha = 0.4
         self.topLabelLeft.sizeToFit()
         //self.topLabelLeft.frame.origin = CGPoint(x: 0, y: 0)
@@ -193,7 +193,7 @@ class SecondaryViewController : UIViewController {
         self.nextBatchLabel.text = ""
         self.nextBatchLabel.font = UIFont(name: bolcherietFontString, size: 36)
         self.nextBatchLabel.textColor = textColor
-        self.nextBatchLabel.backgroundColor = backgroundColor
+        //self.nextBatchLabel.backgroundColor = backgroundColor
         self.nextBatchLabel.alpha = alpha
         self.nextBatchLabel.frame.origin = CGPoint(x: 0, y: self.currentTimeLabel.frame.origin.y)
         self.nextBatchLabel.hidden = true

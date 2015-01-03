@@ -39,6 +39,7 @@ class NextShowDate {
     
     init(showDate: NSDate) {
         self.date = showDate
+        cutSeconds()
         self.weekday = NSCalendar.currentCalendar().components(NSCalendarUnit.CalendarUnitWeekday, fromDate: self.date).weekday
         self.weekOfYear = NSCalendar.currentCalendar().components(NSCalendarUnit.WeekOfYearCalendarUnit, fromDate: self.date).weekOfYear
         self.year = NSCalendar.currentCalendar().components(NSCalendarUnit.YearForWeekOfYearCalendarUnit, fromDate: self.date).yearForWeekOfYear
@@ -82,6 +83,7 @@ class NextShowDate {
         
     }
     
+    // cuts off seconds from picked date and time
     func cutSeconds(){
         date = NSDate(timeIntervalSince1970: NSTimeInterval(Int(date.timeIntervalSince1970 / 60) * 60))
     }
