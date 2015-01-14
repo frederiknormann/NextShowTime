@@ -50,7 +50,10 @@ class SecondaryViewController : UIViewController {
     //SlideShow
     var slideArray : [UIImage] = []
     var slideNumber : Int = 0
-    var numberOfSlides : Int = 30
+    //var numberOfSlides : Int = 30
+    var languageTimeInterval: NSTimeInterval = 10 //sec
+    var languageTimeCounter : NSTimeInterval = 0
+    var slideTimeInterval : NSTimeInterval = 6 //sec
     
     // Font
     var bolcherietFontString = "Helvetica" //"AppleSDGothicNeo-Bold" //ArialMT
@@ -59,6 +62,8 @@ class SecondaryViewController : UIViewController {
     // Time
     let timeFormatter = NSDateFormatter()
 
+    
+    
     //Temp
     var iArray : [Int] = []
     
@@ -80,9 +85,9 @@ class SecondaryViewController : UIViewController {
         NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: "updateClock", userInfo: nil, repeats: true)
         
         // SlideShow Timer
-        NSTimer.scheduledTimerWithTimeInterval(5, target: self, selector: "nextSlide", userInfo: nil, repeats: true)
+        NSTimer.scheduledTimerWithTimeInterval(slideTimeInterval, target: self, selector: "nextSlide", userInfo: nil, repeats: true)
         
-        for var i=1 ; i < 30 ; i++ {
+        for var i=1 ; i < 32 ; i++ {
             var numberString = ""
             if (i < 10){
                 numberString = "0\(String(i))"
@@ -102,8 +107,10 @@ class SecondaryViewController : UIViewController {
         self.view.backgroundColor = UIColor.blackColor()
         
         //TEST
-        println(self.view.bounds)
+        println(self.view.frame.origin)
+        println(self.view.bounds.origin)
         println(self.view.frame)
+        println(self.view.frame.width)
         let frame = UIScreen.screens()[1].frame
         println(frame)
         
@@ -124,6 +131,14 @@ class SecondaryViewController : UIViewController {
     // Updates the time of the next batch by getting it from the var in AppDelegate, which is updatet in ViewController which runs on the device
     func updateNextBatchTime() {
         let appDelegate = (UIApplication.sharedApplication().delegate as AppDelegate)
+        if appDelegate.isLanguageEnabled {
+            if (languageTimeCounter < languageTimeInterval) {languageTimeCounter +=  1}
+            else {
+                appDelegate.nextBatchDate.nextLanguage()
+                languageTimeCounter = 0
+            }
+        }
+        else {appDelegate.nextBatchDate.language = "da"}
         
         if (appDelegate.isBatchTimeSet) {
             self.nextBatchLabel.text = appDelegate.nextBatchDate.generateNextShowStringSecondary()
@@ -188,7 +203,7 @@ class SecondaryViewController : UIViewController {
         self.currentTimeLabel.frame.origin.y = container.bounds.height - self.currentTimeLabel.frame.height
         self.currentTimeLabel.hidden = true
         container.addSubview(self.currentTimeLabel)
-        
+        println(self.currentTimeLabel.frame.height)
         self.nextBatchLabel = UILabel()
         self.nextBatchLabel.text = ""
         self.nextBatchLabel.font = UIFont(name: bolcherietFontString, size: 36)

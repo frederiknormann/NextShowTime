@@ -16,7 +16,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     var secondaryWindow: UIWindow?
     var nextBatchDate : NextShowDate = NextShowDate(showDate: NSDate())
     var isBatchTimeSet : Bool = false
+    var isLanguageEnabled : Bool = false
     var secondaryResolution = CGRect(x: 0, y: 0, width: 0, height: 0)
+    
 
     func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
         // Override point for customization after application launch.

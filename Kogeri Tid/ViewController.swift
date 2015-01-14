@@ -13,23 +13,31 @@ class ViewController: UIViewController, UIPickerViewDataSource, UIPickerViewDele
     @IBOutlet weak var nextBatchTimeDatePicker: UIDatePicker!
     @IBOutlet weak var minutePicker: UIPickerView!
     
+    @IBOutlet weak var nextBatchLabel: UILabel!
     @IBOutlet weak var nextBatchTimeLabel: UILabel!
     @IBOutlet weak var secondaryResolutionLabel: UILabel!
     @IBOutlet weak var airPlayStatusLabel: UILabel!
     
+    @IBOutlet weak var languageSwitch: UISwitch!
     let timeFormatter = NSDateFormatter()
     let pickerData = [0,2,4,6,8,10,12,15,20,25,30,35,40,45]
+    
+    let appDelegate = (UIApplication.sharedApplication().delegate as AppDelegate)
     
     override func viewDidLoad() {
         super.viewDidLoad()
         //Timer that updates the datepicker to the currentDate
-        NSTimer.scheduledTimerWithTimeInterval(30, target: self, selector: "updateDatePicker", userInfo: nil, repeats: true)
+        NSTimer.scheduledTimerWithTimeInterval(10, target: self, selector: "updateDatePicker", userInfo: nil, repeats: true)
+        NSTimer.scheduledTimerWithTimeInterval(1, target: self, selector: "updateNextBatchTimeLabel", userInfo: nil, repeats: true)
+        
         updateDatePicker()
+        
+        languageSwitch.on = appDelegate.isLanguageEnabled
         
         //Handeling connecting and disconnecting secondary screen
         var screenConnectionStatusChangedNotification = NSNotificationCenter.defaultCenter()
-        screenConnectionStatusChangedNotification.addObserver(self, selector: "secondaryScreenConnectionStatusChanged", name: UIScreenDidConnectNotification, object: nil)
-        screenConnectionStatusChangedNotification.addObserver(self, selector: "secondaryScreenConnectionStatusChanged", name: UIScreenDidDisconnectNotification, object: nil)
+        screenConnectionStatusChangedNotification.addObserver(self, selector: "secondaryScreenDidConnect", name: UIScreenDidConnectNotification, object: nil)
+        screenConnectionStatusChangedNotification.addObserver(self, selector: "secondaryScreenDidDisconnect", name: UIScreenDidDisconnectNotification, object: nil)
         
         //Setup of Picker
         minutePicker.dataSource = self
@@ -52,6 +60,12 @@ class ViewController: UIViewController, UIPickerViewDataSource, UIPickerViewDele
         //nextBatchTimeDatePicker.maximumDate = time.dateByAddingTimeInterval(60*60*24*7)
     }
 
+    func updateNextBatchTimeLabel() {
+        if (appDelegate.isBatchTimeSet) {
+            nextBatchTimeLabel.text = appDelegate.nextBatchDate.generateNextShowStringPrimary()
+        }
+    }
+
     func secondaryScreenDidConnect() {
         secondaryScreenConnectionStatusChanged()
         println("connected")
@@ -63,26 +77,35 @@ class ViewController: UIViewController, UIPickerViewDataSource, UIPickerViewDele
     }
     
     func secondaryScreenConnectionStatusChanged() {
+        // Tjek om disse dan skrives ind i de to ovenstående funktioner eller om der er rod hvis en 3. skærm er tilsluttet
         if (UIScreen.screens().count == 1){
             airPlayStatusLabel.text = "Slå AirPlay Skærmdublering til!"
             airPlayStatusLabel.hidden = false
+            nextBatchLabel.hidden = true
+            nextBatchTimeLabel.hidden = true
         }
         else {
             airPlayStatusLabel.text = ""
             airPlayStatusLabel.hidden = true
+            nextBatchLabel.hidden = false
+            nextBatchTimeLabel.hidden = false
         }
     }
     
+    
+    // IBActions
+    
     @IBAction func setTimeButtonPressed(sender: AnyObject) {
-        let appDelegate = (UIApplication.sharedApplication().delegate as AppDelegate)
+        appDelegate.isLanguageEnabled = languageSwitch.on
         appDelegate.nextBatchDate = NextShowDate(showDate: nextBatchTimeDatePicker.date)
         appDelegate.isBatchTimeSet = true
         //reset minutepicker to 0
         nextBatchTimeLabel.text = appDelegate.nextBatchDate.generateNextShowStringPrimary()
+        
+        
     }
     
     @IBAction func ResetButtonPressed(sender: AnyObject) {
-        let appDelegate = (UIApplication.sharedApplication().delegate as AppDelegate)
         appDelegate.isBatchTimeSet = false
         nextBatchTimeLabel.text = ""
         nextBatchTimeDatePicker.date = NSDate()

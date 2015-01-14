@@ -28,7 +28,8 @@ class NextShowDate {
     var seconds = 0
     
     //minimis interval where time left doesn't show
-    var minimis = 30
+    var minimis = 30 //sec
+    var timeBeforeDismissingShowtime = 5  //min
     
     var timeFormatter = NSDateFormatter()
     let timeFormat = "HH:mm"
@@ -36,6 +37,7 @@ class NextShowDate {
     var weekdayString = ""  //ex. "Onsdag"
     var nextShowTimeString = "" //ex. "14:10"
     
+    var language = "da"
     
     init(showDate: NSDate) {
         self.date = showDate
@@ -58,7 +60,7 @@ class NextShowDate {
         self.currentYear = NSCalendar.currentCalendar().components(NSCalendarUnit.YearForWeekOfYearCalendarUnit, fromDate: currentDate).yearForWeekOfYear
         
         timeLeftSec = Int(date.timeIntervalSinceDate(currentDate))
-        println("\(timeLeftSec)tl  \(weekday)w \(currentWeekday)cw \(weekOfYear)wy \(currentWeekOfYear)cwy \(year)y \(currentYear)cy \(weekdayString)")
+        //println("\(timeLeftSec)tl  \(weekday)w \(currentWeekday)cw \(weekOfYear)wy \(currentWeekOfYear)cwy \(year)y \(currentYear)cy \(weekdayString)")
         
         self.actualDays = Int(timeLeftSec / (60*60*24))
         self.hours = Int(timeLeftSec / (60*60) % 24)
@@ -79,7 +81,7 @@ class NextShowDate {
                 }
             }
         }
-        println("\(timeLeftSec)tl \(actualDays)ad \(days)d \(hours)t \(minutes)min \(seconds)s")
+        //println("\(timeLeftSec)tl \(actualDays)ad \(days)d \(hours)t \(minutes)min \(seconds)s")
         
     }
     
@@ -88,6 +90,7 @@ class NextShowDate {
         date = NSDate(timeIntervalSince1970: NSTimeInterval(Int(date.timeIntervalSince1970 / 60) * 60))
     }
     
+    //skal laves som et array med de 3 sprog
     func weekDayString(weekday : Int) -> String {
         var weekDayString = ""
         switch (weekday) {
@@ -103,11 +106,16 @@ class NextShowDate {
         return weekDayString
     }
     
+    func nextLanguage() {
+        if (language == "da") {language = "de"}
+        else {language = "da"}
+    }
+    
     func generateNextShowStringPrimary() -> String {
         
         self.updateCurrentDayVariables()
         var nextBatchTimeString: String = ""
-            println(days)
+            //println(days)
             if (self.days > 0) {
                 if (days==1) {
                     nextBatchTimeString = "Imorgen \(self.nextShowTimeString)"
@@ -127,11 +135,10 @@ class NextShowDate {
                 }
                 nextBatchTimeString = "\(self.nextShowTimeString) (\(timeLeftString))"
             }
-         
         return nextBatchTimeString
     }
 
-    
+//    skal laves så tekster trækkes fra array med oversættelser, meget kortere...
     func generateNextShowStringSecondary() -> String {
         
         self.updateCurrentDayVariables()
@@ -140,12 +147,32 @@ class NextShowDate {
         
         if (timeLeftSec > self.minimis) {
             
-            if (days > 0) {
+            if (days > 0) { //Der er en bug ligeomkring skiftet fra uge 51/52 til uge 1 hvor ugedag vises istedet for imorgen
                 if (days==1) {
-                    nextBatchTimeString = "Vi starter igen imorgen kl. \(self.nextShowTimeString)"
+                    if (language == "da"){
+                        nextBatchTimeString = "Vi starter igen imorgen kl. \(self.nextShowTimeString)"
+                    }
+                    else if (language == "de") {
+                        nextBatchTimeString = "Wir fangen an morgens am \(self.nextShowTimeString)"
+                    }
+                    else if (language == "en") {
+                        nextBatchTimeString = "We start again tomorrow at \(self.nextShowTimeString)"
+                    }
                 }
                 else {
-                    nextBatchTimeString = "Næste Portion: \(weekdayString) \(self.nextShowTimeString)"
+                    if (language == "da"){
+                        nextBatchTimeString = "Næste Portion: \(weekdayString) \(self.nextShowTimeString)"
+                    }
+                    else if (language == "de") {
+                        nextBatchTimeString = "Nächste Mal: \(weekdayString) \(self.nextShowTimeString)"
+                    }
+                    else if (language == "en") {
+                        nextBatchTimeString = "Next Batch: \(weekdayString) \(self.nextShowTimeString)"
+                    }
+//                    else {
+//                        nextBatchTimeString = "Næste Portion: \(weekdayString) \(self.nextShowTimeString)"
+//                    }
+                    
                 }
             }
             else {
@@ -157,12 +184,37 @@ class NextShowDate {
                 else {
                     timeLeftString = "\(minutes + 1)min"
                 }
-                nextBatchTimeString = "Næste Portion: \(self.nextShowTimeString) (om ca. \(timeLeftString))"
+                
+                if (language == "da"){
+                    nextBatchTimeString = "Næste Portion: \(self.nextShowTimeString) (om ca. \(timeLeftString))"
+                }
+                else if (language == "de") {
+                    nextBatchTimeString = "Nächste Mal: \(self.nextShowTimeString) (von ca. \(timeLeftString))"
+                }
+                else if (language == "en") {
+                    nextBatchTimeString = "Next Batch: \(self.nextShowTimeString) (in about \(timeLeftString))"
+                }
+                
+                //nextBatchTimeString = "Næste Portion: \(self.nextShowTimeString) (om ca. \(timeLeftString))"
             }
             
         }
+        else if (minutes >= -timeBeforeDismissingShowtime && minutes <= minimis) {
+        
+            if (language == "da"){
+                nextBatchTimeString = "Vi starter lige om lidt"
+            }
+            else if (language == "de") {
+                nextBatchTimeString = "Wir fangen an bald"
+            }
+            else if (language == "en") {
+                nextBatchTimeString = "We will be starting shortly"
+            }
+            
+            //nextBatchTimeString = "Vi starter lige om lidt"
+        }
         else {
-            nextBatchTimeString = "Vi starter lige om lidt"
+            nextBatchTimeString = ""
         }
         return nextBatchTimeString
     }
